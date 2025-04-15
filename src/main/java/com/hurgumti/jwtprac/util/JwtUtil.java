@@ -4,15 +4,13 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-@Service
+@Component
 public class JwtUtil {
 
     private static final String SECRET_KEY = "arsenalversusrealmadridendupwithwinforarsenal"; // .env로 따로 보관 추천
@@ -38,6 +36,7 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
+        System.out.println("토큰 값은 : " + token);
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
 }
