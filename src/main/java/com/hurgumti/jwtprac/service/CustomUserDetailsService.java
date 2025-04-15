@@ -16,7 +16,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("해당 유저가 존재하지 않습니다: " + username));
-
         return org.springframework.security.core.userdetails.User.builder().username(user.getUsername()).password(user.getPassword())  // 꼭 인코딩된 패스워드여야 함
                 .roles(user.getRole().replace("ROLE_", ""))  // ROLE_USER → USER
                 .build();

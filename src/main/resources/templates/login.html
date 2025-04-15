@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>로그인</title>
+</head>
+<body>
+<h2>로그인</h2>
+
+<form id="loginForm">
+    <input type="text" id="username" name="username"/>
+    <input type="password" id="password" name="password"/>
+    <button type="submit">로그인</button>
+</form>
+
+</body>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username, password})
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // ✅ JWT accessToken을 localStorage에 저장
+                localStorage.setItem("accessToken", data.accessToken);
+
+                alert("로그인 성공");
+
+                // ✅ 토큰을 가지고 home으로 이동
+                window.location.href = "/home";
+            } else {
+                const errorData = await response.json();
+                alert("로그인 실패: " + errorData.message);
+            }
+        } catch (error) {
+            console.error("로그인 요청 중 오류 발생:", error);
+            alert("로그인 중 문제가 발생했습니다. 다시 시도해주세요.");
+        }
+    });
+</script>
+
+</html>
