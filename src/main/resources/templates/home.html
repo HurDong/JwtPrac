@@ -6,8 +6,14 @@
 <body>
 <h2>사용자님 환영합니다!</h2>
 
-<form th:action="@{/logout}" method="post">
-    <button type="submit">로그아웃</button>
+<form th:action="@{/auth/logout}" method="post">
+    <button type="submit" onclick="clearAccessToken()">로그아웃</button>
 </form>
+<script>
+    function clearAccessToken() {
+        // ✅ localStorage에서 accessToken 삭제
+        localStorage.removeItem("accessToken");
+    }
+</script>
 </body>
 </html>
