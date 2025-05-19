@@ -2,18 +2,55 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>홈</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-<h2>사용자님 환영합니다!</h2>
+<h2 id="welcome">사용자님 환영합니다!</h2>
 
-<form th:action="@{/auth/logout}" method="post">
-    <button type="submit" onclick="clearAccessToken()">로그아웃</button>
-</form>
+<button id="logoutBtn">로그아웃</button>
+
 <script>
-    function clearAccessToken() {
-        // ✅ localStorage에서 accessToken 삭제
+    // ✅ 1. 페이지 로드시 토큰 검증
+    window.addEventListener("load", async () => {
+        const token = localStorage.getItem("accessToken");
+
+        if (!token) {
+            // 🔁 accessToken이 없으면 로그인 페이지로
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const res = await fetch("/auth/me", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById("welcome").innerText = `👋 ${data.message}`;
+            } else {
+                // 🔁 토큰이 유효하지 않으면 로그인 페이지로
+                localStorage.removeItem("accessToken");
+                window.location.href = "/login";
+            }
+        } catch (error) {
+            console.error("토큰 검증 실패:", error);
+            localStorage.removeItem("accessToken");
+            window.location.href = "/login";
+        }
+    });
+
+    // ✅ 2. 로그아웃 버튼 클릭 시 토큰 삭제 + 페이지 이동
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
         localStorage.removeItem("accessToken");
-    }
+
+        // 서버 로그아웃 요청 (필요 시)
+        await fetch("/auth/logout", { method: "POST" });
+
+        window.location.href = "/login";
+    });
 </script>
 </body>
 </html>

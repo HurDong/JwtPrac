@@ -2,18 +2,43 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>로그인</title>
+    <meta charset="UTF-8">
 </head>
 <body>
 <h2>로그인</h2>
 
 <form id="loginForm">
-    <input type="text" id="username" name="username"/>
-    <input type="password" id="password" name="password"/>
+    <input type="text" id="username" name="username" placeholder="아이디"/><br/>
+    <input type="password" id="password" name="password" placeholder="비밀번호"/><br/>
     <button type="submit">로그인</button>
 </form>
 
-</body>
 <script>
+    // ✅ 페이지 로드시 accessToken 검사
+    window.addEventListener("load", async () => {
+        const token = localStorage.getItem("accessToken");
+
+        if (token) {
+            try {
+                const response = await fetch("/auth/me", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.ok) {
+                    // 🔁 이미 로그인되어 있음 → home으로 이동
+                    window.location.href = "/home";
+                } else {
+                    console.warn("⚠️ accessToken 있음, 하지만 만료되었거나 유효하지 않음");
+                }
+            } catch (error) {
+                console.error("토큰 검증 중 오류:", error);
+            }
+        }
+    });
+
+    // ✅ 로그인 로직
     document.getElementById("loginForm").addEventListener("submit", async function (event) {
         event.preventDefault();
         const username = document.getElementById("username").value;
@@ -22,42 +47,29 @@
         try {
             const response = await fetch("/auth/login", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username, password})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
             });
 
             if (response.ok) {
                 const data = await response.json();
 
-                // ✅ JWT accessToken을 localStorage에 저장
                 localStorage.setItem("accessToken", data.accessToken);
-
                 alert("로그인 성공");
 
-                const accessToken = data.accessToken;
+                // 🔁 로그인 성공 → /home 이동
+                window.location.href = "/home";
 
-               fetch("/home", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": "Bearer " + accessToken
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        // 브라우저를 /home으로 리다이렉트
-                        window.location.href = "/home";
-                    } else {
-                        console.error("요청 실패:", response.status);
-                    }
-                });
             } else {
                 const errorData = await response.json();
-                alert("로그인 실패: " + errorData.message);
+                alert("로그인 실패: " + (errorData.message || "서버 오류"));
             }
+
         } catch (error) {
-            console.error("로그인 요청 중 오류 발생:", error);
-            alert("로그인 중 문제가 발생했습니다. 다시 시도해주세요.");
+            console.error("로그인 중 오류:", error);
+            alert("문제가 발생했습니다. 다시 시도해주세요.");
         }
     });
 </script>
-
+</body>
 </html>
